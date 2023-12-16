@@ -13,7 +13,7 @@ telepot.api._pools = {
 
 telepot.api._onetime_pool_spec = (urllib3.ProxyManager, dict(proxy_url=proxy_url, num_pools=1, maxsize=1, retries=False, timeout=30))
 
-bot = telepot.Bot('6425973679:AAH3ThUf_aPjo_57-3uHUPu9s4gvmUSPjZc')
+bot = telepot.Bot('6532691429:AAFa8iBQgLOS2A_L840Jy3jbeIDmFwYVQMs')
 
 # Data structure to store user's transactions and balance
 
@@ -60,31 +60,6 @@ def save_data(data):
         for chat_id, user_data in data.items():
             for transaction in user_data['transactions']:
                 writer.writerow([chat_id, transaction['id'], transaction['description'], transaction['amount'], transaction['category'] ] )
-#### Load keywords:
-
-csv_file_keywords='keywords.csv'
-categories_keywords = {}
-
-def load_keywords_from_csv():
-    try:
-        with open(csv_file_keywords, newline='') as file:
-            reader = csv.reader(file)
-            next(reader)  # Skip the header row
-            for row in reader:
-                keyword, category = row
-                categories_keywords.setdefault(category, []).append(keyword)
-    except FileNotFoundError:
-        print(f"File '{csv_file_keywords}' not found.")
-
-# Assign lists based on categories
-food_keywords = categories_keywords.get('food', [])
-gifts_keywords = categories_keywords.get('gifts', [])
-health_medical_keywords = categories_keywords.get('health_medical', [])
-home_keywords = categories_keywords.get('home', [])
-transportation_keywords = categories_keywords.get('transportation', [])
-personal_keywords = categories_keywords.get('personal', [])
-others_keywords = categories_keywords.get('others', [])
-
 
 
 ####### CODE STARTED
@@ -132,17 +107,9 @@ def on_callback_query(msg):
 
     # Extract the action and transaction_id from the callback_data
     action, transaction_id = query_data.split('_')
-    description=""
-    amount=0
-    for x in users_data[chat_id]:
-        for i in x:
-            if i['transaction_id']==query_data:
-                description=i['description']
-                amount=int(i['amount'])
-
 
     if action == 'edit':
-        bot.sendMessage(chat_id,f"EDIT here show a transacion : {description,amount}",reply_markup=des_amount_cat(chat_id,transaction_id))
+        bot.sendMessage(chat_id,f"EDIT here show a transacion : {query_data}",reply_markup=des_amount_cat(chat_id,transaction_id))
     elif action == 'delete':
         bot.sendMessage(chat_id, f"Are you sure to delete transaction {transaction_id} ? ", reply_markup=confirm_edit_delete_keyboard(chat_id,transaction_id))
     elif action=="yes":
@@ -184,8 +151,13 @@ def handle_start(chat_id):
     bot.sendMessage(chat_id, instructions)
     return
 #####
-
-
+food_keywords = ['banquet', 'bistro', 'breakfast', 'buffet', 'cafe', 'chow', 'cookery', 'cuisine', 'culinary', 'delicacy', 'dessert', 'dining', 'dinner', 'eatery', 'eatables', 'edibles', 'fast food', 'feast', 'food', 'gastronomy', 'gourmet', 'groceries', 'grocery', 'kitchen', 'lunch', 'meal', 'nutrition', 'pantry', 'patisserie', 'produce', 'refreshment', 'restaurant', 'snack', 'snack bar', 'treat', 'victuals', 'vittles']
+gifts_keywords = ['advantage', 'alms', 'award', 'bequest', 'benevolence', 'benefaction', 'bestowal', 'birthday', 'blessing', 'bounty', 'celebration', 'charity', 'compensation', 'contribution', 'donation', 'dole', 'endowment', 'favor', 'gift', 'giveaway', 'goodie', 'gratuity', 'handout', 'inheritance', 'keepsake', 'legacy', 'memento', 'offering', 'perquisite', 'philanthropy', 'present', 'prize', 'remembrance', 'reward', 'souvenir', 'surprise', 'testimonial', 'tip', 'token', 'tribute', 'trophy']
+health_medical_keywords = ['care', 'checkup', 'clinic', 'convalescence', 'counseling', 'disease', 'doctor', 'emergency', 'fitness', 'health', 'health center', 'health check', 'healthcare', 'hospital', 'illness', 'infirmary', 'injury', 'laboratory', 'medical', 'medical practice', 'medical supplies', 'medical treatment', 'medication', 'medicine', 'mental health', 'nurse', 'operation', 'patient', 'pharmaceutical', 'pharmacy', 'physical health', 'physician', 'prescription', 'rehabilitation', 'remedy', 'sick', 'sickroom', 'therapy', 'treatment', 'vaccine', 'wellness']
+home_keywords = ['abode', 'accommodation', 'apartment', 'barn', 'bungalow', 'cabin', 'castle', 'chalet', 'condo', 'cottage', 'domestic', 'domicile', 'dwelling', 'estate', 'farmhouse', 'flat', 'habitat', 'home', 'homestead', 'house', 'household', 'living space', 'lodging', 'manor', 'mansion', 'palace', 'property', 'quarters', 'ranch', 'real estate', 'residence', 'roof', 'rooming', 'shack', 'shed', 'shelter', 'tenement', 'townhouse', 'villa']
+transportation_keywords = ['airplane', 'auto', 'automobile', 'bicycle', 'bike-sharing', 'bus', 'cab', 'car', 'carpool', 'carriage', 'commute', 'commuter', 'congestion', 'drive', 'driver', 'ferry', 'gasoline', 'highway', 'hitchhike', 'hybrid', 'lyft', 'metro', 'motorbike', 'motorcycle', 'navigation', 'parking', 'pedestrian', 'public transit', 'rental', 'ride-sharing', 'road', 'road trip', 'route', 'RV', 'scooter', 'shuttle', 'subway', 'taxi', 'traffic', 'tram', 'transport', 'trolley', 'truck', 'uber', 'van', 'vehicle', 'walk']
+personal_keywords = ['accessories', 'aesthetic', 'appearance', 'attire', 'attitude', 'beauty', 'care', 'character', 'cleanliness', 'clothing', 'cosmetics', 'dress', 'emotions', 'face', 'fashion', 'grooming', 'habits', 'hygiene', 'identity', 'image', 'individual', 'individualism', 'individuality', 'lifestyle', 'look', 'maintenance', 'mentality', 'outerwear', 'outfit', 'perception', 'persona', 'personal', 'personalized', 'perspective', 'presentation', 'self', 'self-care', 'self-esteem', 'self-image', 'self-respect', 'style', 'taste', 'trend', 'wardrobe']
+categories_keywords = {'food': food_keywords, 'gifts': gifts_keywords, 'health_medical': health_medical_keywords, 'home': home_keywords, 'transportation': transportation_keywords, 'personal': personal_keywords, 'others': 'N/A'}
 
 ######### PREDICT categories
 def predict_category(chat_id,description):
@@ -230,8 +202,7 @@ def handle_description_amount(chat_id, description, amount):
     users_data[chat_id]['transactions'].append(transaction)
     users_data[chat_id]['balance'] += amount
 
-    transaction_info = f"💳 {transaction['description']} {transaction['amount']} \n\n🆔 {transaction['id']}  \n\n📊  {pred}  "  ;
-    #transaction_info = f"ID: {transaction['id']} - Transaction \"{transaction['description']}\" amount: \"{transaction['amount']}\" \nCatergy {pred}\n\nadded! \n Or you can /edit this or /delete this transaction "
+    transaction_info = f"ID: {transaction['id']} - Transaction \"{transaction['description']}\" amount: \"{transaction['amount']}\" \nCatergy {pred}\n\nadded! \n Or you can /edit this or /delete this transaction "
 
     #transaction_info += f"\n{which_category(chat_id,transaction['id'])}"
 
@@ -337,6 +308,7 @@ def handle(msg):
         return
 
     text = msg.get("text", "")
+
     if text=='/cancel':
         if ongoing_actions[chat_id]:
             del ongoing_actions[chat_id]
@@ -391,7 +363,6 @@ def handle(msg):
     except ValueError:
         bot.sendMessage(chat_id,"PLease enter valid request 'Transaction and amount'")
 ###### CODE END
-load_keywords_from_csv()
 users_data=load_data()
 bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
 
