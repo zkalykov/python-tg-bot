@@ -108,17 +108,27 @@ def on_callback_query(msg):
     # Extract the action and transaction_id from the callback_data
     action, transaction_id = query_data.split('_')
 
+
+
+    ####
+
+
+    ###
+
+
     if action == 'edit':
-        bot.sendMessage(chat_id,f"EDIT here show a transacion : {query_data}",reply_markup=des_amount_cat(chat_id,transaction_id))
+        bot.sendMessage(chat_id,f"What you want edit of : {transaction_id}",reply_markup=des_amount_cat(chat_id,transaction_id))
     elif action == 'delete':
         bot.sendMessage(chat_id, f"Are you sure to delete transaction {transaction_id} ? ", reply_markup=confirm_edit_delete_keyboard(chat_id,transaction_id))
     elif action=="yes":
-        bot.sendMessage(chat_id,f"{chat_id,transaction_id}")
         handle_delete_transaction(chat_id,transaction_id)
     elif action=="no":
-        if ongoing_actions[chat_id]:
-            del ongoing_actions[chat_id]
-        bot.sendMessage(chat_id,"Action Cancelled !")
+        try:
+            if ongoing_actions[chat_id]['action']:
+                del ongoing_actions[chat_id]['action']
+        except KeyError:
+          pass
+        bot.sendMessage(chat_id,"Okey, cancelled !")
     elif action=="des":
         bot.sendMessage(chat_id,f"Please send me a new description for transaction {transaction_id}",reply_markup=cancel_keyboard(chat_id,transaction_id) )
         ongoing_actions[chat_id]={'action':'description','id':int(transaction_id)}
@@ -202,7 +212,7 @@ def handle_description_amount(chat_id, description, amount):
     users_data[chat_id]['transactions'].append(transaction)
     users_data[chat_id]['balance'] += amount
 
-    transaction_info = f"ID: {transaction['id']} - Transaction \"{transaction['description']}\" amount: \"{transaction['amount']}\" \nCatergy {pred}\n\nadded! \n Or you can /edit this or /delete this transaction "
+    transaction_info = f"ID: {transaction['id']} - Transaction \"{transaction['description']}\" amount: \"{transaction['amount']}\" \nCatergy {pred}\n\nadded! \n "
 
     #transaction_info += f"\n{which_category(chat_id,transaction['id'])}"
 
@@ -270,6 +280,10 @@ def handle_edit_transaction(chat_id, transaction_id, new_description=None, new_a
 
             bot.sendMessage(chat_id, transaction_info)
             break
+    try:
+        del ongoing_actions[chat_id]
+    except:
+        bot.sendMessage(chat_id,"I hope everything okey.")
     save_data(users_data)
 ####
 def handle_delete_transaction(chat_id, transaction_id):
@@ -284,7 +298,7 @@ def handle_delete_transaction(chat_id, transaction_id):
         users_data[chat_id]['transactions'].remove(transaction_to_delete)
         bot.sendMessage(chat_id, f"Transaction ID: {transaction_id} has been deleted.")
     else:
-        bot.sendMessage(chat_id, "Transaction not found. Please Send valid ID or /cancel action ")
+        bot.sendMessage(chat_id, "Transaction not found. Something went wrong. Please  /cancel action ")
     save_data(users_data)
 ####
 def handle_confirm_clear_data(chat_id):
@@ -312,7 +326,10 @@ def handle(msg):
     if text=='/cancel':
         if ongoing_actions[chat_id]:
             del ongoing_actions[chat_id]
-        bot.sendMessage(chat_id,"Action Cancelled ! ")
+            bot.sendMessage(chat_id,"Action Cancelled ! ")
+        else:
+            bot.sendMessage(chat_id,"There is no action ongoing ! ")
+
         return
 
     #############################
@@ -322,8 +339,15 @@ def handle(msg):
         if ongoing_actions[chat_id]['action']=='description':
             handle_edit_transaction(chat_id,int(ongoing_actions[chat_id]['id']),new_description=text)
         elif ongoing_actions[chat_id]['action']=='amount':
-            handle_edit_transaction(chat_id,int(ongoing_actions[chat_id]['id']),new_amount=int(text))
-
+            if text.isdigit():
+                handle_edit_transaction(chat_id,int(ongoing_actions[chat_id]['id']),new_amount=int(text))
+            else:
+                bot.sendMessage(chat_id,"Pleaes send numbers...")
+        elif ongoing_actions[chat_id]['action']=='clear_data' and text=="/confirm_clear_data":
+            handle_confirm_clear_data(chat_id)
+        else:
+            bot.sendMessage(chat_id,f"Please /cancel action or finish started progress:")
+            bot.sendMessage(chat_id,f"You were at : {ongoing_actions[chat_id]['action']}")
         return
 
 
@@ -342,20 +366,12 @@ def handle(msg):
         handle_transactions(chat_id)
         return
 
-    if text == '/edit':
-        ongoing_actions[chat_id] = {'action':'edit_by_id_asked','id':-1}
-        bot.sendMessage(chat_id, "Please provide the transaction ID you want to edit. Or /cancel action")
-        return
-
-    if text == '/delete':
-        ongoing_actions[chat_id] = {'action':'delete_by_id_asked','id':-1}
-        bot.sendMessage(chat_id, "Please provide the transaction ID you want to delete. or /cancel action")
-        return
-
     if text == '/clear_data':
         bot.sendMessage(chat_id, "Are you sure you want to clear all your data? This action cannot be undone. Please type /confirm_clear_data to proceed. or /cancel action")
-        #ongoing_actions[chat_id] = {'action': 'clear_data'}
+        ongoing_actions[chat_id] = {'action': 'clear_data'}
         return
+
+    # try to get respone of user
     try:
         description, amount = text.rsplit(' ', 1)
         amount = float(amount)
